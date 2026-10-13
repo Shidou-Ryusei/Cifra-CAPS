@@ -1,0 +1,2296 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SecureLab | Criptografia e Esteganografia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+
+            --dark: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+
+            --white: #ffffff;
+
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+
+            --radius: 12px;
+            --radius-lg: 18px;
+
+            --shadow: 0 8px 30px rgba(15, 23, 42, .08);
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: #f8fafc;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 270px;
+            background: linear-gradient(180deg, #0f172a, #172554);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: .3s ease;
+        }
+
+        .brand {
+            padding: 25px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            box-shadow: 0 8px 20px rgba(37,99,235,.35);
+        }
+
+        .brand h1 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .brand span {
+            display: block;
+            font-size: 11px;
+            color: #93c5fd;
+            margin-top: 2px;
+        }
+
+        .menu {
+            padding: 18px 12px;
+            overflow-y: auto;
+        }
+
+        .menu-label {
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 10px 12px 7px;
+        }
+
+        .menu-item {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            padding: 12px 13px;
+            margin-bottom: 4px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: left;
+            transition: .2s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,.07);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 5px 15px rgba(37,99,235,.25);
+        }
+
+        .menu-icon {
+            width: 23px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .submenu {
+            display: none;
+            margin: -1px 0 7px 24px;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255,255,255,.1);
+        }
+
+        .submenu.open {
+            display: block;
+        }
+
+        .submenu button {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 9px 10px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: .2s;
+        }
+
+        .submenu button:hover,
+        .submenu button.active {
+            background: rgba(59,130,246,.12);
+            color: #93c5fd;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 18px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            margin-left: 270px;
+            width: calc(100% - 270px);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 70px;
+            background: rgba(255,255,255,.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title h2 {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: var(--gray-500);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(16,185,129,.12);
+        }
+
+        .content {
+            max-width: 1400px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        /* =========================
+           VIEWS
+        ========================= */
+
+        .view {
+            display: none;
+            animation: fadeIn .3s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =========================
+           DASHBOARD
+        ========================= */
+
+        .hero {
+            background: linear-gradient(135deg, #172554, #2563eb);
+            border-radius: 20px;
+            padding: 35px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            right: -120px;
+            top: -160px;
+            background: rgba(147,197,253,.15);
+            border-radius: 50%;
+        }
+
+        .hero h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            color: #bfdbfe;
+            max-width: 650px;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 13px;
+        }
+
+        .stat-number {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            color: var(--gray-500);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        /* =========================
+           CARDS
+        ========================= */
+
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 22px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 750;
+        }
+
+        .card-title-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* =========================
+           CRYPTO LAYOUT
+        ========================= */
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            color: var(--gray-600);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        textarea,
+        input,
+        select {
+            width: 100%;
+            border: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--dark);
+            transition: .2s;
+        }
+
+        textarea {
+            min-height: 170px;
+            resize: vertical;
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            outline: none;
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+        }
+
+        .key-field {
+            max-width: 180px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 9px;
+            padding: 11px 17px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+        }
+
+        .result {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 170px;
+        }
+
+        .result-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #172554;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           STEGANOGRAPHY
+        ========================= */
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .feature-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            padding: 22px;
+            background: white;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .feature-card:hover {
+            border-color: #93c5fd;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            margin-bottom: 14px;
+        }
+
+        .feature-card h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            color: var(--gray-500);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .drop-zone {
+            border: 2px dashed #bfdbfe;
+            background: #eff6ff;
+            border-radius: 14px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: #dbeafe;
+        }
+
+        .drop-zone-icon {
+            font-size: 35px;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .drop-zone span {
+            color: var(--gray-500);
+            font-size: 11px;
+        }
+
+        .file-preview {
+            margin-top: 18px;
+            display: none;
+        }
+
+        .file-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+
+        /* =========================
+           HISTORY
+        ========================= */
+
+        .history-item {
+            padding: 15px;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+
+        .history-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 7px;
+        }
+
+        .history-type {
+            color: var(--primary);
+            font-weight: 750;
+            font-size: 12px;
+        }
+
+        .history-date {
+            color: var(--gray-400);
+            font-size: 10px;
+        }
+
+        .history-content {
+            color: var(--gray-600);
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        /* =========================
+           CHAT
+        ========================= */
+
+        .chat-box {
+            height: 470px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 11px 14px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .message.system {
+            background: white;
+            border: 1px solid var(--gray-200);
+        }
+
+        .message.user {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* =========================
+           INFO
+        ========================= */
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-section h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .info-section p,
+        .info-section li {
+            color: var(--gray-600);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .info-section ul {
+            padding-left: 20px;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        .mobile-header {
+            display: none;
+        }
+
+        @media (max-width: 1000px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 13px 16px;
+                background: var(--dark);
+                color: white;
+            }
+
+            .mobile-header button {
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 22px;
+                cursor: pointer;
+            }
+
+            .topbar {
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .security-status {
+                display: none;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .hero {
+                padding: 25px;
+            }
+
+            .hero h2 {
+                font-size: 22px;
+            }
+
+            .cards-grid,
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .chat-input {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">🔐</div>
+            <div>
+                <h1>SecureLab</h1>
+                <span>Criptografia & Esteganografia</span>
+            </div>
+        </div>
+
+        <div class="menu">
+
+            <div class="menu-label">Principal</div>
+
+            <button class="menu-item active" data-view="dashboard">
+                <span class="menu-icon">⌂</span>
+                Dashboard
+            </button>
+
+            <div class="menu-label">Segurança</div>
+
+            <button class="menu-item" id="cryptoMenu">
+                <span class="menu-icon">🔐</span>
+                Criptografia
+                <span style="margin-left:auto">⌄</span>
+            </button>
+
+            <div class="submenu" id="cryptoSubmenu">
+                <button data-view="cesar">Cifra de César</button>
+                <button data-view="base64">Base64</button>
+                <button data-view="vigenere">Vigenère</button>
+            </div>
+
+            <button class="menu-item" id="stegMenu">
+                <span class="menu-icon">🖼️</span>
+                Esteganografia
+                <span style="margin-left:auto">⌄</span>
+            </button>
+
+            <div class="submenu" id="stegSubmenu">
+                <button data-view="steg-texto">Texto em Imagem</button>
+                <button data-view="steg-imagem">Análise de Imagem</button>
+            </div>
+
+            <div class="menu-label">Sistema</div>
+
+            <button class="menu-item" data-view="historico">
+                <span class="menu-icon">📜</span>
+                Histórico
+            </button>
+
+            <button class="menu-item" data-view="assistente">
+                <span class="menu-icon">💬</span>
+                Assistente
+            </button>
+
+            <button class="menu-item" data-view="sobre">
+                <span class="menu-icon">ℹ️</span>
+                Sobre
+            </button>
+
+        </div>
+
+        <div class="sidebar-footer">
+            SecureLab v2.0<br>
+            Ferramenta educacional de segurança
+        </div>
+
+    </aside>
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <section class="main">
+
+        <div class="mobile-header">
+            <strong>🔐 SecureLab</strong>
+            <button onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <header class="topbar">
+
+            <div class="page-title">
+                <h2 id="pageTitle">Dashboard</h2>
+                <p id="pageSubtitle">Centro de operações de segurança</p>
+            </div>
+
+            <div class="security-status">
+                <span class="status-dot"></span>
+                Sistema local ativo
+            </div>
+
+        </header>
+
+        <main class="content">
+
+            <!-- =========================
+                 DASHBOARD
+            ========================== -->
+
+            <section class="view active" id="view-dashboard">
+
+                <div class="hero">
+                    <h2>Centro de Segurança Digital</h2>
+                    <p>
+                        Utilize ferramentas de criptografia e esteganografia
+                        para estudar técnicas de proteção, ocultação e análise
+                        de informações.
+                    </p>
+                </div>
+
+                <div class="cards-grid">
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🔐</div>
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Métodos de criptografia</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🖼️</div>
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Ferramentas de esteganografia</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">📜</div>
+                        <div class="stat-number" id="totalOperacoes">0</div>
+                        <div class="stat-label">Operações realizadas</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Processamento local</div>
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">⚡</div>
+                            Ferramentas rápidas
+                        </div>
+                    </div>
+
+                    <div class="feature-grid">
+
+                        <div class="feature-card" onclick="abrirView('cesar')">
+                            <div class="feature-icon">🔒</div>
+                            <h3>Cifra de César</h3>
+                            <p>
+                                Criptografe e descriptografe textos utilizando
+                                deslocamento de caracteres.
+                            </p>
+                        </div>
+
+                        <div class="feature-card" onclick="abrirView('steg-texto')">
+                            <div class="feature-icon">🖼️</div>
+                            <h3>Texto em Imagem</h3>
+                            <p>
+                                Interface preparada para ocultação de mensagens
+                                dentro de arquivos de imagem.
+                            </p>
+                        </div>
+
+                        <div class="feature-card" onclick="abrirView('base64')">
+                            <div class="feature-icon">🔄</div>
+                            <h3>Base64</h3>
+                            <p>
+                                Codifique e decodifique informações em Base64.
+                            </p>
+                        </div>
+
+                        <div class="feature-card" onclick="abrirView('historico')">
+                            <div class="feature-icon">📜</div>
+                            <h3>Histórico</h3>
+                            <p>
+                                Consulte as operações realizadas durante a sessão.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 CÉSAR
+            ========================== -->
+
+            <section class="view" id="view-cesar">
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🔐</div>
+                            Cifra de César
+                        </div>
+                    </div>
+
+                    <div class="tool-grid">
+
+                        <div>
+
+                            <div class="field">
+                                <label for="textoCesar">Texto para processar</label>
+
+                                <textarea
+                                    id="textoCesar"
+                                    placeholder="Digite o texto que deseja criptografar ou descriptografar..."
+                                ></textarea>
+                            </div>
+
+                            <div class="field key-field">
+                                <label for="chaveCesar">Chave / deslocamento</label>
+
+                                <input
+                                    type="number"
+                                    id="chaveCesar"
+                                    value="3"
+                                    min="1"
+                                    max="26"
+                                >
+                            </div>
+
+                            <div class="buttons">
+
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="criptografarCesar()">
+                                    🔒 Criptografar
+                                </button>
+
+                                <button
+                                    class="btn btn-success"
+                                    onclick="descriptografarCesar()">
+                                    🔓 Descriptografar
+                                </button>
+
+                                <button
+                                    class="btn btn-secondary"
+                                    onclick="limparCesar()">
+                                    Limpar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div>
+
+                            <div class="result">
+
+                                <div class="result-label">
+                                    Resultado
+                                </div>
+
+                                <div
+                                    class="result-text"
+                                    id="resultadoCesar">
+                                    —
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title" style="margin-bottom:15px;">
+                        💡 Como funciona?
+                    </div>
+
+                    <p style="font-size:13px;color:#475569;line-height:1.7;">
+                        A Cifra de César desloca cada letra do alfabeto
+                        por uma quantidade determinada pela chave.
+                        Por exemplo, com chave 3:
+                        <strong>A → D</strong>,
+                        <strong>B → E</strong> e
+                        <strong>C → F</strong>.
+                    </p>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 BASE64
+            ========================== -->
+
+            <section class="view" id="view-base64">
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🔄</div>
+                            Codificação Base64
+                        </div>
+                    </div>
+
+                    <div class="tool-grid">
+
+                        <div class="field">
+                            <label for="base64Input">Texto</label>
+
+                            <textarea
+                                id="base64Input"
+                                placeholder="Digite o texto..."
+                            ></textarea>
+
+                            <div class="buttons" style="margin-top:15px;">
+
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="codificarBase64()">
+                                    Codificar
+                                </button>
+
+                                <button
+                                    class="btn btn-success"
+                                    onclick="decodificarBase64()">
+                                    Decodificar
+                                </button>
+
+                            </div>
+                        </div>
+
+                        <div class="result">
+
+                            <div class="result-label">
+                                Resultado
+                            </div>
+
+                            <div
+                                class="result-text"
+                                id="resultadoBase64">
+                                —
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 VIGENERE
+            ========================== -->
+
+            <section class="view" id="view-vigenere">
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🔑</div>
+                            Cifra de Vigenère
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Texto</label>
+
+                        <textarea
+                            id="vigenereTexto"
+                            placeholder="Digite o texto..."
+                        ></textarea>
+                    </div>
+
+                    <div class="field key-field">
+                        <label>Palavra-chave</label>
+
+                        <input
+                            type="text"
+                            id="vigenereChave"
+                            placeholder="CHAVE"
+                        >
+                    </div>
+
+                    <div class="buttons">
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="vigenere(true)">
+                            🔒 Criptografar
+                        </button>
+
+                        <button
+                            class="btn btn-success"
+                            onclick="vigenere(false)">
+                            🔓 Descriptografar
+                        </button>
+
+                    </div>
+
+                    <div class="result" style="margin-top:20px;">
+
+                        <div class="result-label">
+                            Resultado
+                        </div>
+
+                        <div
+                            class="result-text"
+                            id="resultadoVigenere">
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 ESTEGANOGRAFIA - TEXTO
+            ========================== -->
+
+            <section class="view" id="view-steg-texto">
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🖼️</div>
+                            Esteganografia — Texto em Imagem
+                        </div>
+                    </div>
+
+                    <div class="drop-zone" onclick="document.getElementById('imagemInput').click()">
+
+                        <div class="drop-zone-icon">📁</div>
+
+                        <strong>
+                            Selecione uma imagem
+                        </strong>
+
+                        <span>
+                            PNG, JPG ou WEBP
+                        </span>
+
+                        <input
+                            type="file"
+                            id="imagemInput"
+                            accept="image/*"
+                            hidden
+                            onchange="carregarImagem(event)"
+                        >
+
+                    </div>
+
+                    <div class="file-preview" id="previewImagem">
+
+                        <img id="imagemPreview" alt="Pré-visualização">
+
+                    </div>
+
+                    <div class="field" style="margin-top:20px;">
+
+                        <label>
+                            Mensagem a ser ocultada
+                        </label>
+
+                        <textarea
+                            id="mensagemSecreta"
+                            placeholder="Digite a mensagem que deseja ocultar..."
+                        ></textarea>
+
+                    </div>
+
+                    <div class="buttons">
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="ocultarMensagem()">
+                            🔒 Ocultar mensagem
+                        </button>
+
+                        <button
+                            class="btn btn-success"
+                            onclick="extrairMensagem()">
+                            🔓 Extrair mensagem
+                        </button>
+
+                    </div>
+
+                    <div
+                        id="stegStatus"
+                        style="
+                            margin-top:18px;
+                            padding:14px;
+                            border-radius:10px;
+                            background:#f8fafc;
+                            color:#64748b;
+                            font-size:12px;
+                        ">
+                        Nenhuma operação realizada.
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-title" style="margin-bottom:12px;">
+                        ℹ️ O que é esteganografia?
+                    </div>
+
+                    <p style="font-size:13px;color:#475569;line-height:1.7;">
+                        Esteganografia é a técnica de ocultar uma informação
+                        dentro de outro arquivo ou meio, de forma que a
+                        existência da mensagem não seja evidente.
+                    </p>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 ESTEGANOGRAFIA - ANÁLISE
+            ========================== -->
+
+            <section class="view" id="view-steg-imagem">
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            <div class="card-title-icon">🔎</div>
+                            Análise de Imagem
+                        </div>
+
+                    </div>
+
+                    <div class="drop-zone" onclick="document.getElementById('analiseInput').click()">
+
+                        <div class="drop-zone-icon">🔎</div>
+
+                        <strong>
+                            Selecione uma imagem para analisar
+                        </strong>
+
+                        <span>
+                            Informações básicas do arquivo serão exibidas
+                        </span>
+
+                        <input
+                            type="file"
+                            id="analiseInput"
+                            accept="image/*"
+                            hidden
+                            onchange="analisarImagem(event)"
+                        >
+
+                    </div>
+
+                    <div
+                        id="analiseResultado"
+                        style="margin-top:20px;">
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 HISTÓRICO
+            ========================== -->
+
+            <section class="view" id="view-historico">
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            <div class="card-title-icon">📜</div>
+                            Histórico de Operações
+                        </div>
+
+                        <button
+                            class="btn btn-secondary"
+                            onclick="limparHistorico()">
+                            Limpar histórico
+                        </button>
+
+                    </div>
+
+                    <div id="listaHistorico">
+                        <p style="color:#64748b;font-size:13px;">
+                            Nenhuma operação registrada.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 ASSISTENTE
+            ========================== -->
+
+            <section class="view" id="view-assistente">
+
+                <div class="card chat-box">
+
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">💬</div>
+                            Assistente de Segurança
+                        </div>
+                    </div>
+
+                    <div
+                        class="messages"
+                        id="messages">
+
+                        <div class="message system">
+                            Olá! 👋 Sou o assistente do SecureLab.
+                            Posso explicar Cifra de César, Vigenère,
+                            Base64 e conceitos de esteganografia.
+                        </div>
+
+                    </div>
+
+                    <div class="chat-input">
+
+                        <input
+                            type="text"
+                            id="chatInput"
+                            placeholder="Digite sua pergunta..."
+                        >
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="enviarChat()">
+                            Enviar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =========================
+                 SOBRE
+            ========================== -->
+
+            <section class="view" id="view-sobre">
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <div class="card-title">
+                            <div class="card-title-icon">ℹ️</div>
+                            Sobre o SecureLab
+                        </div>
+
+                    </div>
+
+                    <div class="info-section">
+
+                        <h3>Criptografia</h3>
+
+                        <p>
+                            A criptografia transforma informações de modo
+                            que seu conteúdo original não fique diretamente
+                            compreensível sem o processo ou chave adequada.
+                        </p>
+
+                    </div>
+
+                    <div class="info-section">
+
+                        <h3>Esteganografia</h3>
+
+                        <p>
+                            Diferentemente da criptografia, que busca proteger
+                            o conteúdo da informação, a esteganografia busca
+                            ocultar a própria existência da informação.
+                        </p>
+
+                    </div>
+
+                    <div class="info-section">
+
+                        <h3>Ferramentas disponíveis</h3>
+
+                        <ul>
+                            <li>Cifra de César</li>
+                            <li>Base64</li>
+                            <li>Cifra de Vigenère</li>
+                            <li>Esteganografia em imagens</li>
+                            <li>Análise básica de imagens</li>
+                            <li>Histórico de operações</li>
+                            <li>Assistente educacional</li>
+                        </ul>
+
+                    </div>
+
+                    <div
+                        style="
+                            background:#fffbeb;
+                            border-left:4px solid #f59e0b;
+                            padding:14px;
+                            border-radius:8px;
+                            font-size:12px;
+                            color:#92400e;
+                        ">
+
+                        ⚠️ Este sistema é destinado principalmente
+                        a estudos e demonstrações de técnicas de segurança.
+                        Cifras clássicas como César e Vigenère não devem ser
+                        consideradas adequadas para proteger informações
+                        sensíveis em sistemas reais.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </section>
+
+</div>
+
+<script>
+
+    /* =====================================
+       ESTADO
+    ===================================== */
+
+    const historico = [];
+
+    const titulos = {
+
+        dashboard: [
+            "Dashboard",
+            "Centro de operações de segurança"
+        ],
+
+        cesar: [
+            "Cifra de César",
+            "Criptografia por deslocamento"
+        ],
+
+        base64: [
+            "Base64",
+            "Codificação e decodificação"
+        ],
+
+        vigenere: [
+            "Cifra de Vigenère",
+            "Criptografia polialfabética"
+        ],
+
+        "steg-texto": [
+            "Texto em Imagem",
+            "Esteganografia"
+        ],
+
+        "steg-imagem": [
+            "Análise de Imagem",
+            "Ferramentas de análise"
+        ],
+
+        historico: [
+            "Histórico",
+            "Registro de operações"
+        ],
+
+        assistente: [
+            "Assistente",
+            "Ajuda e aprendizado"
+        ],
+
+        sobre: [
+            "Sobre",
+            "Informações do sistema"
+        ]
+
+    };
+
+
+    /* =====================================
+       NAVEGAÇÃO
+    ===================================== */
+
+    function abrirView(view) {
+
+        document.querySelectorAll(".view")
+            .forEach(v => v.classList.remove("active"));
+
+        const elemento = document.getElementById("view-" + view);
+
+        if (elemento) {
+            elemento.classList.add("active");
+        }
+
+        document.querySelectorAll(".menu-item, .submenu button")
+            .forEach(btn => btn.classList.remove("active"));
+
+        const botao = document.querySelector(
+            `[data-view="${view}"]`
+        );
+
+        if (botao) {
+            botao.classList.add("active");
+        }
+
+        if (titulos[view]) {
+
+            document.getElementById("pageTitle").textContent =
+                titulos[view][0];
+
+            document.getElementById("pageSubtitle").textContent =
+                titulos[view][1];
+
+        }
+
+        document.getElementById("sidebar")
+            .classList.remove("open");
+    }
+
+
+    document.querySelectorAll("[data-view]")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                abrirView(button.dataset.view);
+
+            });
+
+        });
+
+
+    document.getElementById("cryptoMenu")
+        .addEventListener("click", () => {
+
+            document.getElementById("cryptoSubmenu")
+                .classList.toggle("open");
+
+        });
+
+
+    document.getElementById("stegMenu")
+        .addEventListener("click", () => {
+
+            document.getElementById("stegSubmenu")
+                .classList.toggle("open");
+
+        });
+
+
+    function toggleSidebar() {
+
+        document.getElementById("sidebar")
+            .classList.toggle("open");
+
+    }
+
+
+    /* =====================================
+       CIFRA DE CÉSAR
+    ===================================== */
+
+    function processarCesar(texto, chave, modo) {
+
+        chave = ((chave % 26) + 26) % 26;
+
+        if (modo === "descriptografar") {
+            chave = (26 - chave) % 26;
+        }
+
+        return texto
+            .split("")
+            .map(letra => {
+
+                const codigo = letra.charCodeAt(0);
+
+                if (codigo >= 65 && codigo <= 90) {
+
+                    return String.fromCharCode(
+                        ((codigo - 65 + chave) % 26) + 65
+                    );
+
+                }
+
+                if (codigo >= 97 && codigo <= 122) {
+
+                    return String.fromCharCode(
+                        ((codigo - 97 + chave) % 26) + 97
+                    );
+
+                }
+
+                return letra;
+
+            })
+            .join("");
+
+    }
+
+
+    function criptografarCesar() {
+
+        const texto =
+            document.getElementById("textoCesar").value;
+
+        const chave =
+            parseInt(
+                document.getElementById("chaveCesar").value
+            ) || 3;
+
+        const resultado =
+            processarCesar(
+                texto,
+                chave,
+                "criptografar"
+            );
+
+        document.getElementById("resultadoCesar")
+            .textContent = resultado || "—";
+
+        registrarHistorico(
+            "Cifra de César — Criptografia",
+            texto,
+            resultado
+        );
+
+    }
+
+
+    function descriptografarCesar() {
+
+        const texto =
+            document.getElementById("textoCesar").value;
+
+        const chave =
+            parseInt(
+                document.getElementById("chaveCesar").value
+            ) || 3;
+
+        const resultado =
+            processarCesar(
+                texto,
+                chave,
+                "descriptografar"
+            );
+
+        document.getElementById("resultadoCesar")
+            .textContent = resultado || "—";
+
+        registrarHistorico(
+            "Cifra de César — Descriptografia",
+            texto,
+            resultado
+        );
+
+    }
+
+
+    function limparCesar() {
+
+        document.getElementById("textoCesar").value = "";
+
+        document.getElementById("resultadoCesar")
+            .textContent = "—";
+
+    }
+
+
+    /* =====================================
+       BASE64
+    ===================================== */
+
+    function codificarBase64() {
+
+        const texto =
+            document.getElementById("base64Input").value;
+
+        try {
+
+            const resultado =
+                btoa(unescape(encodeURIComponent(texto)));
+
+            document.getElementById("resultadoBase64")
+                .textContent = resultado;
+
+            registrarHistorico(
+                "Base64 — Codificação",
+                texto,
+                resultado
+            );
+
+        } catch {
+
+            document.getElementById("resultadoBase64")
+                .textContent = "Erro ao codificar.";
+
+        }
+
+    }
+
+
+    function decodificarBase64() {
+
+        const texto =
+            document.getElementById("base64Input").value;
+
+        try {
+
+            const resultado =
+                decodeURIComponent(
+                    escape(atob(texto))
+                );
+
+            document.getElementById("resultadoBase64")
+                .textContent = resultado;
+
+            registrarHistorico(
+                "Base64 — Decodificação",
+                texto,
+                resultado
+            );
+
+        } catch {
+
+            document.getElementById("resultadoBase64")
+                .textContent =
+                "Base64 inválido ou malformado.";
+
+        }
+
+    }
+
+
+    /* =====================================
+       VIGENÈRE
+    ===================================== */
+
+    function vigenere(criptografar) {
+
+        const texto =
+            document.getElementById("vigenereTexto")
+                .value;
+
+        const chave =
+            document.getElementById("vigenereChave")
+                .value
+                .toUpperCase()
+                .replace(/[^A-Z]/g, "");
+
+        if (!chave) {
+
+            document.getElementById("resultadoVigenere")
+                .textContent =
+                "Informe uma palavra-chave.";
+
+            return;
+        }
+
+        let resultado = "";
+        let indice = 0;
+
+        for (const char of texto) {
+
+            const codigo = char.charCodeAt(0);
+
+            if (
+                (codigo >= 65 && codigo <= 90) ||
+                (codigo >= 97 && codigo <= 122)
+            ) {
+
+                const base =
+                    codigo >= 97 ? 97 : 65;
+
+                const deslocamento =
+                    chave.charCodeAt(indice % chave.length) - 65;
+
+                const novoDeslocamento =
+                    criptografar
+                        ? deslocamento
+                        : -deslocamento;
+
+                resultado += String.fromCharCode(
+                    (
+                        codigo -
+                        base +
+                        novoDeslocamento +
+                        26
+                    ) % 26 + base
+                );
+
+                indice++;
+
+            } else {
+
+                resultado += char;
+
+            }
+
+        }
+
+        document.getElementById("resultadoVigenere")
+            .textContent = resultado;
+
+        registrarHistorico(
+            criptografar
+                ? "Vigenère — Criptografia"
+                : "Vigenère — Descriptografia",
+            texto,
+            resultado
+        );
+
+    }
+
+
+    /* =====================================
+       HISTÓRICO
+    ===================================== */
+
+    function registrarHistorico(tipo, original, resultado) {
+
+        historico.unshift({
+
+            tipo,
+            original,
+            resultado,
+            data: new Date().toLocaleString("pt-BR")
+
+        });
+
+        atualizarHistorico();
+
+        document.getElementById("totalOperacoes")
+            .textContent = historico.length;
+
+    }
+
+
+    function atualizarHistorico() {
+
+        const container =
+            document.getElementById("listaHistorico");
+
+        container.replaceChildren();
+
+        if (historico.length === 0) {
+
+            const vazio =
+                document.createElement("p");
+
+            vazio.style.color = "#64748b";
+            vazio.style.fontSize = "13px";
+            vazio.textContent =
+                "Nenhuma operação registrada.";
+
+            container.appendChild(vazio);
+
+            return;
+        }
+
+        historico.forEach(item => {
+
+            const box =
+                document.createElement("div");
+
+            box.className = "history-item";
+
+            const top =
+                document.createElement("div");
+
+            top.className = "history-top";
+
+            const tipo =
+                document.createElement("span");
+
+            tipo.className = "history-type";
+            tipo.textContent = item.tipo;
+
+            const data =
+                document.createElement("span");
+
+            data.className = "history-date";
+            data.textContent = item.data;
+
+            top.appendChild(tipo);
+            top.appendChild(data);
+
+            const content =
+                document.createElement("div");
+
+            content.className = "history-content";
+
+            content.textContent =
+                `Original: ${item.original || "(vazio)"}\nResultado: ${item.resultado}`;
+
+            box.appendChild(top);
+            box.appendChild(content);
+
+            container.appendChild(box);
+
+        });
+
+    }
+
+
+    function limparHistorico() {
+
+        historico.length = 0;
+
+        atualizarHistorico();
+
+        document.getElementById("totalOperacoes")
+            .textContent = "0";
+
+    }
+
+
+    /* =====================================
+       ESTEGANOGRAFIA
+    ===================================== */
+
+    function carregarImagem(event) {
+
+        const arquivo =
+            event.target.files[0];
+
+        if (!arquivo) return;
+
+        const reader =
+            new FileReader();
+
+        reader.onload = function(e) {
+
+            document.getElementById("imagemPreview")
+                .src = e.target.result;
+
+            document.getElementById("previewImagem")
+                .style.display = "block";
+
+            document.getElementById("stegStatus")
+                .textContent =
+                "Imagem carregada com sucesso. A interface está pronta para a operação de esteganografia.";
+
+        };
+
+        reader.readAsDataURL(arquivo);
+
+    }
+
+
+    function ocultarMensagem() {
+
+        const mensagem =
+            document.getElementById("mensagemSecreta")
+                .value;
+
+        if (!mensagem) {
+
+            document.getElementById("stegStatus")
+                .textContent =
+                "Digite uma mensagem antes de continuar.";
+
+            return;
+
+        }
+
+        document.getElementById("stegStatus")
+            .textContent =
+            "Mensagem preparada para ocultação. A implementação LSB pode ser adicionada a esta etapa para gerar uma nova imagem.";
+
+        registrarHistorico(
+            "Esteganografia — Ocultação",
+            mensagem,
+            "Mensagem preparada"
+        );
+
+    }
+
+
+    function extrairMensagem() {
+
+        document.getElementById("stegStatus")
+            .textContent =
+            "Extração preparada. Para uma implementação completa, o sistema deverá ler os bits ocultos da imagem selecionada.";
+
+    }
+
+
+    /* =====================================
+       ANÁLISE DE IMAGEM
+    ===================================== */
+
+    function analisarImagem(event) {
+
+        const arquivo =
+            event.target.files[0];
+
+        if (!arquivo) return;
+
+        const resultado =
+            document.getElementById("analiseResultado");
+
+        resultado.innerHTML = "";
+
+        const card =
+            document.createElement("div");
+
+        card.className = "result";
+
+        const titulo =
+            document.createElement("div");
+
+        titulo.className = "result-label";
+        titulo.textContent = "Informações do arquivo";
+
+        const texto =
+            document.createElement("div");
+
+        texto.className = "result-text";
+
+        texto.textContent =
+            `Nome: ${arquivo.name}
+Tipo: ${arquivo.type || "Desconhecido"}
+Tamanho: ${(arquivo.size / 1024).toFixed(2)} KB`;
+
+        card.appendChild(titulo);
+        card.appendChild(texto);
+
+        resultado.appendChild(card);
+
+    }
+
+
+    /* =====================================
+       ASSISTENTE
+    ===================================== */
+
+    function enviarChat() {
+
+        const input =
+            document.getElementById("chatInput");
+
+        const texto =
+            input.value.trim();
+
+        if (!texto) return;
+
+        adicionarMensagem(texto, "user");
+
+        input.value = "";
+
+        setTimeout(() => {
+
+            adicionarMensagem(
+                gerarResposta(texto),
+                "system"
+            );
+
+        }, 500);
+
+    }
+
+
+    function adicionarMensagem(texto, tipo) {
+
+        const messages =
+            document.getElementById("messages");
+
+        const msg =
+            document.createElement("div");
+
+        msg.className =
+            `message ${tipo}`;
+
+        msg.textContent = texto;
+
+        messages.appendChild(msg);
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+    }
+
+
+    function gerarResposta(pergunta) {
+
+        const p =
+            pergunta.toLowerCase();
+
+        if (
+            p.includes("esteganografia") ||
+            p.includes("esteganografia")
+        ) {
+
+            return "Esteganografia é a técnica de esconder uma informação dentro de outro meio, como uma imagem, buscando tornar a existência da mensagem menos evidente.";
+
+        }
+
+        if (
+            p.includes("cesar") ||
+            p.includes("césar")
+        ) {
+
+            return "A Cifra de César desloca as letras do alfabeto por uma quantidade definida pela chave. Com chave 3, por exemplo, A vira D.";
+
+        }
+
+        if (p.includes("base64")) {
+
+            return "Base64 é uma forma de codificação de dados em texto. Ela não deve ser confundida com criptografia, pois não fornece proteção criptográfica por si só.";
+
+        }
+
+        if (p.includes("vigenere") || p.includes("vigenère")) {
+
+            return "A Cifra de Vigenère utiliza uma palavra-chave para aplicar diferentes deslocamentos às letras do texto.";
+
+        }
+
+        if (
+            p.includes("oi") ||
+            p.includes("olá") ||
+            p.includes("ola")
+        ) {
+
+            return "Olá! 👋 Posso ajudar com criptografia, esteganografia e com as ferramentas disponíveis no SecureLab.";
+
+        }
+
+        return "Posso explicar Cifra de César, Vigenère, Base64, esteganografia ou ajudar você a entender como utilizar as ferramentas do sistema.";
+
+    }
+
+
+    document.getElementById("chatInput")
+        .addEventListener("keydown", function(event) {
+
+            if (event.key === "Enter") {
+                enviarChat();
+            }
+
+        });
+
+</script>
+
+</body>
+</html>
+```
